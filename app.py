@@ -1,7 +1,8 @@
 import streamlit as st
-import requests
+from deep_translator import GoogleTranslator
 from gtts import gTTS
 import tempfile
+
 
 languages = {
     "English": "en",
@@ -21,16 +22,20 @@ languages = {
     "Arabic": "ar"
 }
 
+
 st.set_page_config(
     page_title="AI Language Translator",
     page_icon="🌍",
     layout="wide"
 )
 
+
 st.title("🌍 AI Language Translator")
 st.subheader("Translate text instantly between multiple languages")
 
+
 col1, col2 = st.columns(2)
+
 
 with col1:
     text_input = st.text_area(
@@ -45,12 +50,14 @@ with col1:
         index=0
     )
 
+
 with col2:
     target_language = st.selectbox(
         "🎯 Target Language",
         list(languages.keys()),
         index=1
     )
+
 
 if st.button("🔄 Translate", type="primary"):
 
@@ -70,17 +77,10 @@ if st.button("🔄 Translate", type="primary"):
 
     else:
         try:
-            url = "https://api.mymemory.translated.net/get"
-
-            params = {
-                "q": text_input,
-                "langpair": f"{languages[source_language]}|{languages[target_language]}"
-            }
-
-            response = requests.get(url, params=params, timeout=15)
-            data = response.json()
-
-            translated_text = data["responseData"]["translatedText"]
+            translated_text = GoogleTranslator(
+                source=languages[source_language],
+                target=languages[target_language]
+            ).translate(text_input)
 
             st.success("Translation completed!")
 
@@ -107,9 +107,10 @@ if st.button("🔄 Translate", type="primary"):
         except Exception as e:
             st.error("Translation error: " + str(e))
 
+
 st.markdown("---")
 
 st.caption(
     "AI Language Translation Tool | Built with Python, "
-    "Streamlit & MyMemory Translation API"
+    "Streamlit and Google Translator"
 )
