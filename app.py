@@ -1,5 +1,5 @@
 import streamlit as st
-from deep_translator import GoogleTranslator
+import requests
 from gtts import gTTS
 import tempfile
 
@@ -77,10 +77,34 @@ if st.button("🔄 Translate", type="primary"):
 
     else:
         try:
-            translated_text = GoogleTranslator(
-                source=languages[source_language],
-                target=languages[target_language]
-            ).translate(text_input)
+            url = "https://translate.googleapis.com/translate_a/single"
+
+            params = {
+                "client": "gtx",
+                "sl": languages[source_language],
+                "tl": languages[target_language],
+                "dt": "t",
+                "q": text_input
+            }
+
+            response = requests.get(
+                url,
+                params=params,
+                timeout=15
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            translated_text = ""
+
+            for item in data[0]:
+                if item[0]:
+                    translated_text += item[0]
+
+            if not translated_text:
+                raise Exception("No translation was returned.")
 
             st.success("Translation completed!")
 
@@ -90,6 +114,7 @@ if st.button("🔄 Translate", type="primary"):
                 height=180
             )
 
+            # Text-to-Speech
             tts = gTTS(
                 text=translated_text,
                 lang=languages[target_language]
@@ -112,5 +137,5 @@ st.markdown("---")
 
 st.caption(
     "AI Language Translation Tool | Built with Python, "
-    "Streamlit and Google Translator"
+    "Streamlit & Google Translate"
 )
